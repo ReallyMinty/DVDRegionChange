@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
+# In[1]:
 
 
 # This version of the MakeAllRegion script looks for DVDVIDEO-VMG in the ISO file, rather than looking for
@@ -9,20 +9,22 @@
 # This means you don't have to pull the VIDEO_TS file out of the archive first!
 
 
-# In[2]:
+# In[5]:
+
 
 import sys
 
+isoImage = sys.argv[1]
 region0 = 0x40
 regionOffset = 0x23
 
 
-# In[19]:
+# In[6]:
 
 
 # Determine file locations. Region is stored twice, once in the VIDEO_TS.IFO and once in the VIDEO_TS.BUP
 # file. The contents of each file is identical, the second is just for backup in case the first can't be read.
-with open(sys.argv[1], 'rb') as bigf:
+with open(isoImage, 'rb') as bigf:
     isoData = bigf.read(1000000)
 firstLocation = isoData.find(b"DVDVIDEO-VMG")
 secondLocation = isoData.find(b"DVDVIDEO-VMG", firstLocation+12)# 12 is length of "DVDVIDEO-VMG" string
@@ -35,36 +37,23 @@ if(firstLocation < 0 or secondLocation < 0):
     quit()
 
 
-# In[20]:
+# In[7]:
 
 
 #Print the existing region bytes (64 = 0x40 = Region 0)
-firstRegion = isoData[firstLocation + regionOffset]
-secondRegion = isoData[secondLocation + regionOffset]
-
-print(firstRegion)
-
-if(firstRegion != secondRegion):
-    print("WARNING: The two Region codes don't match!")
+print(isoData[firstLocation + regionOffset])
+print(isoData[secondLocation + regionOffset])
 
 
-# In[21]:
+# In[17]:
 
 
-print("Please note Region 7 is reserved and should NEVER be enabled!")
-
-i=1
-bit=1
-
-while(i<9):
-    if((firstRegion & bit) == False):
-        print(i, end=',')
-        if(i == 7):
-            print("\nWARNING: Region 7 is set, which is not allowed!")
-
-    i+=1
-    bit = bit << 1
-    #print(bit)
+#Write region 0 to the file in both locations
+with open(isoImage, 'r+b') as bigf:
+    bigf.seek(firstLocation + regionOffset)
+    bigf.write(b'\x40')
+    bigf.seek(secondLocation + regionOffset)
+    bigf.write(b'\x40')
 
 
 # In[ ]:
