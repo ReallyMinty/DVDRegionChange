@@ -11,6 +11,7 @@
 
 # In[2]:
 
+import sys
 
 region0 = 0x40
 regionOffset = 0x23
